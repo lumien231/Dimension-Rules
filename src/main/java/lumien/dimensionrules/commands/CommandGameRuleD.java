@@ -1,7 +1,6 @@
 package lumien.dimensionrules.commands;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.List;
 
 import lumien.dimensionrules.RuleHandler;
@@ -12,18 +11,16 @@ import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.S19PacketEntityStatus;
+import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 public class CommandGameRuleD extends CommandBase
 {
@@ -42,7 +39,7 @@ public class CommandGameRuleD extends CommandBase
 		return "/gameruled [dimension] <get|list|set|reset> [gamerule] [value]";
 	}
 
-	public void processCommand(ICommandSender sender, String[] args) throws CommandException
+	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
 	{
 		if (args.length == 0)
 		{
@@ -51,7 +48,7 @@ public class CommandGameRuleD extends CommandBase
 
 		GameRules gamerules;
 
-		int dimension = sender.getEntityWorld().provider.getDimensionId();
+		int dimension = sender.getEntityWorld().provider.getDimensionType().getId();
 
 		int a = 0;
 
@@ -73,7 +70,7 @@ public class CommandGameRuleD extends CommandBase
 		String action = args[a];
 
 		WorldServer worldObj = DimensionManager.getWorld(dimension);
-		
+
 		if (worldObj != null)
 		{
 			if (action.equals("list"))
@@ -81,7 +78,7 @@ public class CommandGameRuleD extends CommandBase
 				gamerules = worldObj.getGameRules();
 				String[] rules = gamerules.getRules();
 				StringBuilder builder = new StringBuilder();
-				builder.append("Listing Gamerules for dimension " + dimension + " (Custom: " + (RuleHandler.getGameRuleInstance(worldObj) != null ? (EnumChatFormatting.DARK_GREEN.toString() + "Yes") : (EnumChatFormatting.DARK_RED.toString() + "No")) + EnumChatFormatting.RESET.toString() + ")\n");
+				builder.append("Listing Gamerules for dimension " + dimension + " (Custom: " + (RuleHandler.getGameRuleInstance(worldObj) != null ? (TextFormatting.DARK_GREEN.toString() + "Yes") : (TextFormatting.DARK_RED.toString() + "No")) + TextFormatting.RESET.toString() + ")\n");
 
 				for (int i = 0; i < rules.length; i++)
 				{
@@ -89,7 +86,7 @@ public class CommandGameRuleD extends CommandBase
 					if (gamerules.areSameType(rule, GameRules.ValueType.BOOLEAN_VALUE))
 					{
 						boolean value = gamerules.getBoolean(rule);
-						builder.append(rule + ": " + (value ? EnumChatFormatting.DARK_GREEN : EnumChatFormatting.DARK_RED) + gamerules.getBoolean(rule));
+						builder.append(rule + ": " + (value ? TextFormatting.DARK_GREEN : TextFormatting.DARK_RED) + gamerules.getBoolean(rule));
 					}
 					else
 					{
@@ -102,7 +99,7 @@ public class CommandGameRuleD extends CommandBase
 					}
 				}
 
-				sender.addChatMessage(new ChatComponentText(builder.toString()));
+				sender.addChatMessage(new TextComponentString(builder.toString()));
 			}
 			else if (action.equals("get"))
 			{
@@ -114,7 +111,7 @@ public class CommandGameRuleD extends CommandBase
 				}
 
 				String gameRule = args[a + 1];
-				sender.addChatMessage((new ChatComponentText("Getting " + gameRule + " for dimension " + dimension + " (Custom: " + (RuleHandler.getGameRuleInstance(worldObj) != null ? (EnumChatFormatting.DARK_GREEN.toString() + "Yes") : (EnumChatFormatting.DARK_RED.toString() + "No")) + EnumChatFormatting.RESET.toString() + ")")));
+				sender.addChatMessage((new TextComponentString("Getting " + gameRule + " for dimension " + dimension + " (Custom: " + (RuleHandler.getGameRuleInstance(worldObj) != null ? (TextFormatting.DARK_GREEN.toString() + "Yes") : (TextFormatting.DARK_RED.toString() + "No")) + TextFormatting.RESET.toString() + ")")));
 
 				if (!gamerules.hasRule(gameRule))
 				{
@@ -122,7 +119,7 @@ public class CommandGameRuleD extends CommandBase
 				}
 
 				String value = gamerules.getString(gameRule);
-				sender.addChatMessage((new ChatComponentText(gameRule)).appendText(" = ").appendText(value));
+				sender.addChatMessage((new TextComponentString(gameRule)).appendText(" = ").appendText(value));
 				sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT, gamerules.getInt(gameRule));
 			}
 			else if (action.equals("set"))
@@ -131,15 +128,15 @@ public class CommandGameRuleD extends CommandBase
 				{
 					throw new WrongUsageException(getCommandUsage(sender));
 				}
-				
-				if (worldObj.provider.getDimensionId()==0)
+
+				if (worldObj.provider.getDimensionType().getId() == 0)
 				{
 					throw new CommandException("Use /gamerule to set the \"default\" gamerules");
 				}
 
 				String gameRule = args[a + 1];
 				String value = args[a + 2];
-				sender.addChatMessage((new ChatComponentText("Setting " + gameRule + " to " + value + " in dimension " + dimension)));
+				sender.addChatMessage((new TextComponentString("Setting " + gameRule + " to " + value + " in dimension " + dimension)));
 
 				gamerules = RuleData.getOrCreateFromWorld(worldObj).getGameRules();
 				if (gamerules.areSameType(gameRule, GameRules.ValueType.BOOLEAN_VALUE) && !"true".equals(value) && !"false".equals(value))
@@ -149,36 +146,35 @@ public class CommandGameRuleD extends CommandBase
 
 				gamerules.setOrCreateGameRule(gameRule, value);
 				func_175773_a(gamerules, gameRule);
-				notifyOperators(sender, this, "commands.gamerule.success", new Object[0]);
 			}
 			else if (action.equals("reset"))
 			{
 				boolean hasDefaultRules = RuleData.getFromWorld(worldObj) == null || RuleData.getFromWorld(worldObj).toBeRemoved();
-				
+
 				if (hasDefaultRules)
 				{
-					sender.addChatMessage(new ChatComponentText("Dimension "+worldObj.provider.getDimensionId()+" already has default gamerules"));
+					sender.addChatMessage(new TextComponentString("Dimension " + worldObj.provider.getDimensionType().getId() + " already has default gamerules"));
 				}
 				else
 				{
-					sender.addChatMessage(new ChatComponentText("Resetting Dimension "+worldObj.provider.getDimensionId()+" to default gamerules"));
-					
+					sender.addChatMessage(new TextComponentString("Resetting Dimension " + worldObj.provider.getDimensionType().getId() + " to default gamerules"));
+
 					RuleData ruleData = RuleData.getFromWorld(worldObj);
 					ruleData.remove();
-					
-					try
-		            {
-		                File file1 = new File(worldObj.getChunkSaveLocation(),"data/"+ruleData.mapName+".dat");
 
-		                if (file1.exists())
-		                {
-		                    file1.delete();
-		                }
-		            }
-		            catch (Exception exception)
-		            {
-		                exception.printStackTrace();
-		            }
+					try
+					{
+						File file1 = new File(worldObj.getChunkSaveLocation(), "data/" + ruleData.mapName + ".dat");
+
+						if (file1.exists())
+						{
+							file1.delete();
+						}
+					}
+					catch (Exception exception)
+					{
+						exception.printStackTrace();
+					}
 				}
 			}
 		}
@@ -194,14 +190,15 @@ public class CommandGameRuleD extends CommandBase
 		{
 			byte b0 = (byte) (p_175773_0_.getBoolean(p_175773_1_) ? 22 : 23);
 
-			for (EntityPlayerMP entityplayermp : MinecraftServer.getServer().getConfigurationManager().getPlayerList())
+			for (EntityPlayerMP entityplayermp : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerList())
 			{
-				entityplayermp.playerNetServerHandler.sendPacket(new S19PacketEntityStatus(entityplayermp, b0));
+				entityplayermp.playerNetServerHandler.sendPacket(new SPacketEntityStatus(entityplayermp, b0));
 			}
 		}
 	}
 
-	public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos)
+	@Override
+	public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
 	{
 		if (args.length == 1)
 		{
