@@ -36,10 +36,12 @@ public class RuleData extends WorldSavedData
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt)
+	public NBTTagCompound writeToNBT(NBTTagCompound nbt)
 	{
 		NBTTagCompound ruleCompound = gameRulesInstance.writeToNBT();
 		nbt.setTag("dimensionRuleData", ruleCompound);
+		
+		return nbt;
 	}
 
 	public boolean toBeRemoved()
@@ -60,7 +62,7 @@ public class RuleData extends WorldSavedData
 
 	public static RuleData getFromWorld(World worldObj)
 	{
-		RuleData data = (RuleData) worldObj.getPerWorldStorage().loadData(RuleData.class, ID);
+		RuleData data = (RuleData) worldObj.getPerWorldStorage().getOrLoadData(RuleData.class, ID);
 		if (data == null)
 		{
 			return null;
@@ -71,7 +73,7 @@ public class RuleData extends WorldSavedData
 
 	public static RuleData getOrCreateFromWorld(World worldObj)
 	{
-		RuleData data = (RuleData) worldObj.getPerWorldStorage().loadData(RuleData.class, ID);
+		RuleData data = (RuleData) worldObj.getPerWorldStorage().getOrLoadData(RuleData.class, ID);
 
 		if (data == null || data.toBeRemoved())
 		{

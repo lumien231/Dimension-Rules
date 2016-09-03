@@ -192,7 +192,7 @@ public class CommandGameRuleD extends CommandBase
 
 			for (EntityPlayerMP entityplayermp : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerList())
 			{
-				entityplayermp.playerNetServerHandler.sendPacket(new SPacketEntityStatus(entityplayermp, b0));
+				entityplayermp.connection.sendPacket(new SPacketEntityStatus(entityplayermp, b0));
 			}
 		}
 	}
