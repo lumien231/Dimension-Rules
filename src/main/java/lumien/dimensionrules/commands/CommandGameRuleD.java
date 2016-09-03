@@ -48,7 +48,7 @@ public class CommandGameRuleD extends CommandBase
 
 		GameRules gamerules;
 
-		int dimension = sender.getEntityWorld().provider.getDimensionType().getId();
+		int dimension = sender.getEntityWorld().provider.getDimension();
 
 		int a = 0;
 
@@ -129,7 +129,7 @@ public class CommandGameRuleD extends CommandBase
 					throw new WrongUsageException(getCommandUsage(sender));
 				}
 
-				if (worldObj.provider.getDimensionType().getId() == 0)
+				if (worldObj.provider.getDimension() == 0)
 				{
 					throw new CommandException("Use /gamerule to set the \"default\" gamerules");
 				}
@@ -153,11 +153,11 @@ public class CommandGameRuleD extends CommandBase
 
 				if (hasDefaultRules)
 				{
-					sender.addChatMessage(new TextComponentString("Dimension " + worldObj.provider.getDimensionType().getId() + " already has default gamerules"));
+					sender.addChatMessage(new TextComponentString("Dimension " + worldObj.provider.getDimension() + " already has default gamerules"));
 				}
 				else
 				{
-					sender.addChatMessage(new TextComponentString("Resetting Dimension " + worldObj.provider.getDimensionType().getId() + " to default gamerules"));
+					sender.addChatMessage(new TextComponentString("Resetting Dimension " + worldObj.provider.getDimension() + " to default gamerules"));
 
 					RuleData ruleData = RuleData.getFromWorld(worldObj);
 					ruleData.remove();
