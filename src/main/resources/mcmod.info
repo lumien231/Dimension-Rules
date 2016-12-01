@@ -1,6 +1,6 @@
 [
 {
-  "modid": "DimensionRules",
+  "modid": "dimensionrules",
   "name": "Dimension Rules",
   "description": "A mod that allows you to have different gamerules for different dimensions",
   "version": "${version}",

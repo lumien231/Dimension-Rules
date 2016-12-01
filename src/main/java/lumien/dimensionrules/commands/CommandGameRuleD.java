@@ -24,7 +24,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 
 public class CommandGameRuleD extends CommandBase
 {
-	public String getCommandName()
+	public String getName()
 	{
 		return "gameruled";
 	}
@@ -34,7 +34,7 @@ public class CommandGameRuleD extends CommandBase
 		return 2;
 	}
 
-	public String getCommandUsage(ICommandSender sender)
+	public String getUsage(ICommandSender sender)
 	{
 		return "/gameruled [dimension] <get|list|set|reset> [gamerule] [value]";
 	}
@@ -43,7 +43,7 @@ public class CommandGameRuleD extends CommandBase
 	{
 		if (args.length == 0)
 		{
-			throw new WrongUsageException(getCommandUsage(sender));
+			throw new WrongUsageException(getUsage(sender));
 		}
 
 		GameRules gamerules;
@@ -64,7 +64,7 @@ public class CommandGameRuleD extends CommandBase
 
 		if (args.length <= a)
 		{
-			throw new WrongUsageException(getCommandUsage(sender));
+			throw new WrongUsageException(getUsage(sender));
 		}
 
 		String action = args[a];
@@ -99,7 +99,7 @@ public class CommandGameRuleD extends CommandBase
 					}
 				}
 
-				sender.addChatMessage(new TextComponentString(builder.toString()));
+				sender.sendMessage(new TextComponentString(builder.toString()));
 			}
 			else if (action.equals("get"))
 			{
@@ -107,11 +107,11 @@ public class CommandGameRuleD extends CommandBase
 
 				if (args.length <= a + 1)
 				{
-					throw new WrongUsageException(getCommandUsage(sender));
+					throw new WrongUsageException(getUsage(sender));
 				}
 
 				String gameRule = args[a + 1];
-				sender.addChatMessage((new TextComponentString("Getting " + gameRule + " for dimension " + dimension + " (Custom: " + (RuleHandler.getGameRuleInstance(worldObj) != null ? (TextFormatting.DARK_GREEN.toString() + "Yes") : (TextFormatting.DARK_RED.toString() + "No")) + TextFormatting.RESET.toString() + ")")));
+				sender.sendMessage((new TextComponentString("Getting " + gameRule + " for dimension " + dimension + " (Custom: " + (RuleHandler.getGameRuleInstance(worldObj) != null ? (TextFormatting.DARK_GREEN.toString() + "Yes") : (TextFormatting.DARK_RED.toString() + "No")) + TextFormatting.RESET.toString() + ")")));
 
 				if (!gamerules.hasRule(gameRule))
 				{
@@ -119,14 +119,14 @@ public class CommandGameRuleD extends CommandBase
 				}
 
 				String value = gamerules.getString(gameRule);
-				sender.addChatMessage((new TextComponentString(gameRule)).appendText(" = ").appendText(value));
+				sender.sendMessage((new TextComponentString(gameRule)).appendText(" = ").appendText(value));
 				sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT, gamerules.getInt(gameRule));
 			}
 			else if (action.equals("set"))
 			{
 				if (args.length <= a + 2)
 				{
-					throw new WrongUsageException(getCommandUsage(sender));
+					throw new WrongUsageException(getUsage(sender));
 				}
 
 				if (worldObj.provider.getDimension() == 0)
@@ -136,7 +136,7 @@ public class CommandGameRuleD extends CommandBase
 
 				String gameRule = args[a + 1];
 				String value = args[a + 2];
-				sender.addChatMessage((new TextComponentString("Setting " + gameRule + " to " + value + " in dimension " + dimension)));
+				sender.sendMessage((new TextComponentString("Setting " + gameRule + " to " + value + " in dimension " + dimension)));
 
 				gamerules = RuleData.getOrCreateFromWorld(worldObj).getGameRules();
 				if (gamerules.areSameType(gameRule, GameRules.ValueType.BOOLEAN_VALUE) && !"true".equals(value) && !"false".equals(value))
@@ -153,11 +153,11 @@ public class CommandGameRuleD extends CommandBase
 
 				if (hasDefaultRules)
 				{
-					sender.addChatMessage(new TextComponentString("Dimension " + worldObj.provider.getDimension() + " already has default gamerules"));
+					sender.sendMessage(new TextComponentString("Dimension " + worldObj.provider.getDimension() + " already has default gamerules"));
 				}
 				else
 				{
-					sender.addChatMessage(new TextComponentString("Resetting Dimension " + worldObj.provider.getDimension() + " to default gamerules"));
+					sender.sendMessage(new TextComponentString("Resetting Dimension " + worldObj.provider.getDimension() + " to default gamerules"));
 
 					RuleData ruleData = RuleData.getFromWorld(worldObj);
 					ruleData.remove();
@@ -190,7 +190,7 @@ public class CommandGameRuleD extends CommandBase
 		{
 			byte b0 = (byte) (p_175773_0_.getBoolean(p_175773_1_) ? 22 : 23);
 
-			for (EntityPlayerMP entityplayermp : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerList())
+			for (EntityPlayerMP entityplayermp : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers())
 			{
 				entityplayermp.connection.sendPacket(new SPacketEntityStatus(entityplayermp, b0));
 			}
@@ -198,7 +198,7 @@ public class CommandGameRuleD extends CommandBase
 	}
 
 	@Override
-	public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
+	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
 	{
 		if (args.length == 1)
 		{
